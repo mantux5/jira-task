@@ -71,7 +71,6 @@ const handleAPIResponse = response => {
 }
 
 module.exports = {
-    recurrence: 24 * 60 * 60,
-    startTime: '01:00',
-    run: run
+    schedule: '0 1 * * *',
+    run,
 };
