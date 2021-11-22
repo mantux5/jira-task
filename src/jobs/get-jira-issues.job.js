@@ -1,5 +1,6 @@
-const jiraService = require("../services/jira.service");
-const logger = require("../utils/logger");
+const jiraService = require('../services/jira.service');
+const creatorService = require('../services/creator.service');
+const logger = require('../utils/logger');
 
 const creatorData = {};
 
@@ -13,7 +14,20 @@ const run = () => {
     const endDate = `${today.getFullYear()}-${("0" + (today.getMonth() + 1)).slice(-2)}-${("0" + today.getDate()).slice(-2)}`;
 
     processIssues(startDate, endDate).then(() => {
-        logger.info(creatorData);
+        for (const [key, creatorDetails] of Object.entries(creatorData)) {
+            creatorService.getCreatorByKey(key)
+            .then(creator => {
+                if(creator === null){
+                    creatorService.saveCreator(key, creatorDetails.name, creatorDetails.issues, startDate)
+                } else {
+                    creatorService.incrementIssueCount(key, creatorDetails.issues);
+                    if(creatorDetails.issues > creator.dailyRecord.issues){
+                        creatorService.setNewRecord(key, startDate, creatorDetails.issues)
+                    }
+                }
+            })
+            .catch(error => logger.error(error));
+        }
     })
 }
 
@@ -21,7 +35,9 @@ const processIssues = (startDate, endDate, startAt = 0) => {
     return jiraService.sendAPIRequest({
         method: 'GET',
         url: `search?startAt=${startAt}&jql=Created > ${startDate} AND Created < ${endDate}`,
-    }).then(handleAPIResponse);
+    })
+    .then(handleAPIResponse)
+    .catch(error => logger.error(error));
 }
 
 const handleAPIResponse = response => {
@@ -32,10 +48,13 @@ const handleAPIResponse = response => {
             const creator = issue.fields?.creator;
             if(typeof creator === 'object'){
                 if(!creatorData.hasOwnProperty(creator.key)){
-                    creatorData[creator.key] = 0;
+                    creatorData[creator.key] = {
+                        name: creator.displayName,
+                        issues: 0,
+                    };
                 }
 
-                creatorData[creator.key]++;
+                creatorData[creator.key].issues++;
             }
         }
 
