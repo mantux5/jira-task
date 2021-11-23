@@ -2,6 +2,7 @@ require('dotenv').config();
 const mongoose = require('mongoose');
 const app = require('./app');
 const logger = require('./utils/logger');
+const jobs = require('./jobs');
 
 let server;
 mongoose.connect(process.env.MONGODB_URL, {
@@ -11,6 +12,8 @@ mongoose.connect(process.env.MONGODB_URL, {
   server = app.listen(process.env.SERVER_PORT, process.env.SERVER_HOST, () => {
     logger.info(`Listening to port ${process.env.SERVER_PORT}`);
   });
+
+  jobs.init();
 });
 
 const exitHandler = () => {

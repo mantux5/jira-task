@@ -1,0 +1,1 @@
+module.exports.jiraService = require('./jira.service.js');
