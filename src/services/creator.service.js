@@ -4,6 +4,10 @@ const getCreatorByKey = async (key) => {
     return Creator.findOne({ key });
 }
 
+const getCreators = async () => {
+    return await Creator.find();
+}
+
 const saveCreator = async (key, name, totalIssues, dailyRecordDate) => {
     const creatorDoc = await Creator.create({
         key,
@@ -19,7 +23,7 @@ const saveCreator = async (key, name, totalIssues, dailyRecordDate) => {
 }
 
 const updateCreator = async (key, data) => {
-    const creatorDoc = await Creator.updateOne(
+    const creatorDoc = await Creator.findOneAndUpdate(
         { 
             key: key
         },
@@ -64,6 +68,7 @@ const setNewRecord = async (key, date, issues) => {
 
 module.exports = {
     getCreatorByKey,
+    getCreators,
     saveCreator,
     updateCreator,
     incrementIssueCount,
